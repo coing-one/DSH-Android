@@ -75,6 +75,10 @@ object Radius {
     val lg = RoundedCornerShape(12.dp)
     val xl = RoundedCornerShape(12.dp)
     val panel = RoundedCornerShape(16.dp)
+    /** Miuix card corner (grouped cards on settings-style pages). */
+    val card = RoundedCornerShape(24.dp)
+    /** Miuix dialog / sheet corner. */
+    val dialog = RoundedCornerShape(28.dp)
 }
 
 private val M3Shapes = Shapes(extraSmall = Radius.xs, small = Radius.sm, medium = Radius.md, large = Radius.lg, extraLarge = Radius.panel)
@@ -107,7 +111,11 @@ fun DshTheme(mode: ThemeMode = ThemeMode.System, content: @Composable () -> Unit
         LocalReducedMotion provides reduced,
         LocalTextSelectionColors provides TextSelectionColors(colors.business, Color(0x66353638)),
     ) {
-        MaterialTheme(colorScheme = schemeOf(colors), typography = M3Typography, shapes = M3Shapes, content = content)
+        MaterialTheme(colorScheme = schemeOf(colors), typography = M3Typography, shapes = M3Shapes) {
+            // Miuix is the app-wide generic-UI system now: its theme sits at the root so any
+            // Miuix component (switches, preferences, fields) renders with the HyperOS palette.
+            DshMiuixTheme { content() }
+        }
     }
 }
 

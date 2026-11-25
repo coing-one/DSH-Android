@@ -124,7 +124,7 @@ fun IconBtn(
 
 enum class BtnVariant { Primary, Outline, Ghost, Danger, Info }
 enum class BtnSize(val height: Dp, val hPad: Dp, val style: TextStyle, val shape: Shape) {
-    Sm(28.dp, 10.dp, DshType.xxs12m, Radius.sm), Md(36.dp, 14.dp, DshType.s14, Radius.md), Lg(44.dp, 16.dp, DshType.s14m, Radius.lg)
+    Sm(28.dp, 10.dp, DshType.xxs12m, RoundedCornerShape(10.dp)), Md(36.dp, 14.dp, DshType.s14, RoundedCornerShape(14.dp)), Lg(44.dp, 16.dp, DshType.s14m, RoundedCornerShape(16.dp))
 }
 
 @Composable
@@ -159,33 +159,20 @@ fun DButton(
     }
 }
 
-/** dsh Switch: 36×20 track, 16 dp thumb, 120 ms. */
+/** HyperOS switch (Miuix): the settings/agent toggle everywhere. */
 @Composable
 fun DSwitch(checked: Boolean, onChange: (Boolean) -> Unit, enabled: Boolean = true) {
-    val c = Dsh.colors
-    val x by animateFloatAsState(if (checked) 1f else 0f, tween(120), label = "switch")
-    Box(
-        Modifier.size(48.dp, 40.dp).alpha(if (enabled) 1f else 0.5f)
-            .toggleable(checked, remember { MutableInteractionSource() }, null, enabled = enabled, role = Role.Switch, onValueChange = onChange),
-        contentAlignment = Alignment.Center,
-    ) {
-        Box(Modifier.size(36.dp, 20.dp).clip(CircleShape).background(if (checked) c.info else c.labelDimmed)) {
-            Box(Modifier.offset(x = 2.dp + 16.dp * x, y = 2.dp).size(16.dp).shadow(1.dp, CircleShape).clip(CircleShape)
-                .background(if (checked) Color.White else c.switchThumbOff))
-        }
-    }
+    top.yukonga.miuix.kmp.basic.Switch(checked = checked, onCheckedChange = onChange, enabled = enabled)
 }
 
 @Composable
 fun DCheckbox(checked: Boolean, onChange: ((Boolean) -> Unit)?, modifier: Modifier = Modifier) {
-    val c = Dsh.colors
     // onChange = null: the whole row is the toggle (it carries the semantics), the box is decoration.
-    Box(modifier.size(16.dp).clip(Radius.xs).background(if (checked) c.brandPrimary else Color.Transparent)
-        .border(if (checked) 0.dp else 1.dp, c.borderL4, Radius.xs)
-        .then(if (onChange != null) Modifier.toggleable(checked, role = Role.Checkbox, onValueChange = onChange) else Modifier),
-        contentAlignment = Alignment.Center) {
-        if (checked) DIcon(R.drawable.dsw_check_outline, size = 12.dp, tint = c.labelOnPrimary)
-    }
+    top.yukonga.miuix.kmp.basic.Checkbox(
+        state = androidx.compose.ui.state.ToggleableState(checked),
+        onClick = onChange?.let { cb -> { cb(!checked) } },
+        modifier = modifier,
+    )
 }
 
 enum class DotKind { Done, Warn, Error, Idle, Info }
@@ -353,7 +340,7 @@ fun DMenu(
     val c = Dsh.colors
     DropdownMenu(
         expanded, onDismiss, modifier.widthIn(min = 200.dp).padding(horizontal = 4.dp), offset = offset,
-        shape = Radius.lg, containerColor = if (c.isDark) Color(0xFF303136) else Color(0xFFF8F9FA),
+        shape = Radius.lg, containerColor = if (c.isDark) Color(0xFF2C2C2E) else Color(0xFFFFFFFF),
         tonalElevation = 0.dp, shadowElevation = 8.dp,
         border = androidx.compose.foundation.BorderStroke(Hairline, c.borderL2), content = content,
     )
@@ -406,8 +393,8 @@ fun DDialog(
     val c = Dsh.colors
     Dialog(onDismiss, DialogProperties(usePlatformDefaultWidth = false)) {
         Column(
-            Modifier.padding(24.dp).widthIn(max = 420.dp).fillMaxWidth().elevated(Radius.panel, c.borderL4, 12.dp)
-                .clip(Radius.panel).background(c.bgLayer2).padding(24.dp),
+            Modifier.padding(24.dp).widthIn(max = 420.dp).fillMaxWidth().elevated(Radius.dialog, c.borderL4, 12.dp)
+                .clip(Radius.dialog).background(c.bgLayer2).padding(24.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             Text(title, style = DshType.l20, color = c.labelPrimary)
@@ -452,31 +439,26 @@ fun DInput(
     keyboardType: KeyboardType = KeyboardType.Text,
     minHeight: Dp = 40.dp,
 ) {
-    val c = Dsh.colors
-    BasicTextField(
-        value, onChange, modifier.fillMaxWidth(),
+    // HyperOS text field (Miuix): the placeholder becomes the floating label once text exists.
+    top.yukonga.miuix.kmp.basic.TextField(
+        value = value,
+        onValueChange = onChange,
+        modifier = modifier.fillMaxWidth(),
+        label = placeholder,
+        useLabelAsPlaceholder = true,
         singleLine = singleLine,
-        textStyle = DshType.s14.copy(color = c.labelPrimary),
-        cursorBrush = SolidColor(c.business),
         visualTransformation = if (secret) PasswordVisualTransformation() else VisualTransformation.None,
         keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
-        decorationBox = { inner ->
-            Box(Modifier.heightIn(min = minHeight).clip(Radius.md).background(c.bgModule).border(Hairline, c.borderL2, Radius.md)
-                .padding(horizontal = 12.dp, vertical = 9.dp), contentAlignment = Alignment.CenterStart) {
-                if (value.isEmpty()) Text(placeholder, style = DshType.s14, color = c.labelCaption)
-                inner()
-            }
-        },
     )
 }
 
 // ---- settings cards -----------------------------------------------------------------------------
 
-/** dsh settings card: R20, 0.5 dp border-l4, bg-layer-2; rows separated by hairlines. */
+/** Grouped settings card (Miuix surface): white, R24, borderless; rows separated by hairlines. */
 @Composable
 fun SettingsCard(modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit) {
     val c = Dsh.colors
-    Column(modifier.fillMaxWidth().clip(Radius.xl).background(c.bgLayer2).border(Hairline, c.borderL4, Radius.xl), content = content)
+    Column(modifier.fillMaxWidth().clip(Radius.card).background(c.bgLayer2), content = content)
 }
 
 @Composable
@@ -515,6 +497,8 @@ fun SettingsRow(
                 if (description != null) Text(description, style = DshType.xs13, color = c.labelTertiary)
             }
             trailing?.invoke()
+            // Navigable rows read as Miuix preferences: a trailing chevron when nothing else sits there.
+            if (onClick != null && trailing == null) DIcon(R.drawable.dsw_chevron_right_outline, size = 14.dp, tint = c.labelTertiary)
         }
     }
 }
