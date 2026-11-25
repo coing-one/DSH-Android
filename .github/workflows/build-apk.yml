@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build:
@@ -74,3 +74,13 @@ jobs:
           name: coing-apk
           path: coing.apk
           if-no-files-found: error
+
+      - name: Publish APK to GitHub Release (coing-v1)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release view coing-v1 --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1 || \
+            gh release create coing-v1 --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" \
+              --title "coing 首个构建" \
+              --notes "GitHub Actions 构建，release 未配正式 keystore、回落 debug 密钥签名，可直接安装验 UI；正式签名待定。"
+          gh release upload coing-v1 coing.apk --repo "$GITHUB_REPOSITORY" --clobber
