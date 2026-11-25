@@ -75,12 +75,12 @@ jobs:
           path: coing.apk
           if-no-files-found: error
 
-      - name: Publish APK to GitHub Release (coing-v2)
+      - name: Publish APK to GitHub Release (coing-v3)
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release view coing-v2 --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1 || \
-            gh release create coing-v2 --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" \
+          gh release view coing-v3 --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1 || \
+            gh release create coing-v3 --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" \
               --title "coing 第二版构建" \
               --notes "GitHub Actions 构建。本版：起始页布局修正（品牌区在上、开始使用卡片底部锚定）、对话框按定稿结构重排（大圆角容器、+ 在最左、模型名弹性省略、发送键固定）、起始页与设置首页引入 Miuix 0.9.4 真库试点。release 未配正式 keystore、回落 debug 密钥签名，可直接安装验 UI；正式签名待定。"
-          gh release upload coing-v2 coing.apk --repo "$GITHUB_REPOSITORY" --clobber
+          gh release upload coing-v3 coing.apk --repo "$GITHUB_REPOSITORY" --clobber
