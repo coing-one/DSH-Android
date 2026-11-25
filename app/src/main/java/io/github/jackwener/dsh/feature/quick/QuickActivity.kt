@@ -50,7 +50,7 @@ import io.github.jackwener.dsh.core.designsystem.DshTheme
 import io.github.jackwener.dsh.core.designsystem.DshType
 import io.github.jackwener.dsh.core.designsystem.IconBtn
 import io.github.jackwener.dsh.core.designsystem.Radius
-import io.github.jackwener.dsh.core.designsystem.Whale
+import io.github.jackwener.dsh.core.designsystem.CoingBadge
 import io.github.jackwener.dsh.core.designsystem.elevated
 import io.github.jackwener.dsh.core.designsystem.pressable
 import io.github.jackwener.dsh.core.session.PanelSession
@@ -121,7 +121,7 @@ class QuickActivity : ComponentActivity() {
                             .clickable(remember { MutableInteractionSource() }, null) {}.padding(bottom = 8.dp),
                     ) {
                         Row(Modifier.fillMaxWidth().padding(start = 16.dp, end = 6.dp, top = 6.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Whale(width = 20.dp)
+                            CoingBadge(20.dp)
                             Spacer(Modifier.width(8.dp))
                             Text(live.title.ifBlank { stringResource(R.string.app_name) }, Modifier.weight(1f), style = DshType.s14m, color = c.labelPrimary,
                                 maxLines = 1, overflow = TextOverflow.Ellipsis)

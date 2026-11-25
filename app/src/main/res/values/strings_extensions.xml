@@ -3,7 +3,7 @@
 <resources>
     <string name="set_extensions">扩展</string>
     <string name="set_extensions_desc">插件、技能和 MCP 服务</string>
-    <string name="ext_share_label">安装为 DSH 扩展</string>
+    <string name="ext_share_label">安装为 coing 扩展</string>
     <string name="ext_tab_plugins">插件</string>
     <string name="ext_tab_skills">技能</string>
     <string name="ext_tab_mcp">MCP 服务</string>
@@ -237,8 +237,8 @@
     <string name="ext_mcp_kind_remote">远程</string>
     <string name="ext_mcp_kind_npm">本地 · npm</string>
     <string name="ext_mcp_name_hint">用来区分它的工具，例如 github</string>
-    <string name="ext_indexes_desc">索引是一份插件列表（dsh 插件市场索引格式 1）。精选索引由 DSH-Android 维护；添加别人的索引前，请确认你信任它。</string>
-    <string name="ext_indexes_curated">DSH-Android 精选</string>
+    <string name="ext_indexes_desc">索引是一份插件列表（dsh 插件市场索引格式 1）。精选索引由 coing 维护；添加别人的索引前，请确认你信任它。</string>
+    <string name="ext_indexes_curated">coing 精选</string>
     <string name="ext_indexes_add">添加</string>
     <string name="ext_indexes_remove">移除</string>
     <string name="ext_indexes_restore">恢复精选索引</string>

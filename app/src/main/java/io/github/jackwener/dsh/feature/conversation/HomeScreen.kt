@@ -43,6 +43,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.LifecycleResumeEffect
@@ -55,7 +56,6 @@ import io.github.jackwener.dsh.core.designsystem.IconBtn
 import io.github.jackwener.dsh.core.designsystem.Segmented
 import io.github.jackwener.dsh.core.designsystem.Tag
 import io.github.jackwener.dsh.core.designsystem.Tone
-import io.github.jackwener.dsh.core.designsystem.Whale
 import io.github.jackwener.dsh.core.session.Conversation
 import io.github.jackwener.dsh.core.session.SessionLive
 import io.github.jackwener.dsh.feature.trajectory.TrajectoryView
@@ -86,7 +86,7 @@ fun HomeScreen(vm: HomeViewModel, onSettings: (String?) -> Unit, onAutomation: (
         drawerState = drawer,
         scrimColor = c.scrim,
         drawerContent = {
-            ModalDrawerSheet(Modifier.width(300.dp), drawerShape = RoundedCornerShape(topEnd = 20.dp, bottomEnd = 20.dp),
+            ModalDrawerSheet(Modifier.width(300.dp), drawerShape = RoundedCornerShape(topEnd = 28.dp, bottomEnd = 28.dp),
                 drawerContainerColor = c.sidebar, drawerTonalElevation = 0.dp, windowInsets = androidx.compose.foundation.layout.WindowInsets(0)) {
                 SessionDrawer(
                     sessions, status, currentId,
@@ -140,7 +140,7 @@ private fun ConversationPane(vm: HomeViewModel, onMenu: () -> Unit, onSettings: 
     // accessibility services and UI automation read the card's buttons.
     val waitingOnUser = live.approval != null || live.question != null || live.permission != null || live.takeover != null
     CompositionLocalProvider(LocalReducedMotion provides (LocalReducedMotion.current || waitingOnUser)) {
-    Column(Modifier.fillMaxSize().background(c.bgBase).statusBarsPadding()) {
+    Column(Modifier.fillMaxSize().background(c.bgLayer1).statusBarsPadding()) {
         Row(Modifier.fillMaxWidth().height(52.dp).padding(horizontal = 6.dp), verticalAlignment = Alignment.CenterVertically) {
             IconBtn(R.drawable.dsw_panel_left_outline, onMenu, size = 40.dp, iconSize = 18.dp, tint = c.labelPrimary, contentDescription = stringResource(R.string.open_sidebar))
             Text(if (empty) "" else live.title.ifBlank { conv.turns.firstOrNull()?.user?.text?.lineSequence()?.firstOrNull() ?: stringResource(R.string.new_session) },
@@ -189,18 +189,16 @@ private fun ConversationPane(vm: HomeViewModel, onMenu: () -> Unit, onSettings: 
     }
 }
 
-/** dsh EmptyHero: centered whale + 探索未至之境 + 预览版 pill, composer below. No suggestion chips. */
+/** EmptyHero: centered coing wordmark + tagline, composer below. No suggestion chips. */
 @Composable
 private fun EmptyHero(vm: HomeViewModel, composer: ComposerState, settings: Settings, live: SessionLive, conv: Conversation, onAutomation: () -> Unit, onSettings: (String?) -> Unit) {
     val c = Dsh.colors
     Column(Modifier.fillMaxSize().imePadding().navigationBarsPadding().padding(horizontal = 8.dp).padding(bottom = 32.dp),
         verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
-        Row(Modifier.padding(horizontal = 24.dp), verticalAlignment = Alignment.CenterVertically) {
-            Whale(width = 34.dp)
-            Spacer(Modifier.width(10.dp))
-            Text(stringResource(R.string.hero_title), style = DshType.xl24.copy(fontSize = DshType.xl24.fontSize * 1.08f, fontWeight = androidx.compose.ui.text.font.FontWeight(500)),
-                color = c.labelPrimary, textAlign = TextAlign.Center)
-        }
+        Text(stringResource(R.string.hero_title), Modifier.padding(horizontal = 24.dp), style = DshType.xl24.copy(fontSize = 34.sp, fontWeight = androidx.compose.ui.text.font.FontWeight(600)),
+            color = c.labelPrimary, textAlign = TextAlign.Center)
+        Text(stringResource(R.string.onb_tagline), Modifier.padding(horizontal = 48.dp).padding(top = 10.dp), style = DshType.xs13,
+            color = c.labelTertiary, textAlign = TextAlign.Center)
         // Remote mode (#51): the new conversation runs on this computer.
         val remote by vm.remote.collectAsStateWithLifecycle()
         remote?.host?.let { h ->

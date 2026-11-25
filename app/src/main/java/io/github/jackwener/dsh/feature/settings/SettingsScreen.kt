@@ -52,6 +52,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -532,7 +533,7 @@ private fun AboutSection(vm: SettingsViewModel) {
     Spacer(Modifier.height(8.dp))
     SettingsCard {
         SettingsRow("coing", stringResource(R.string.version, BuildConfig.VERSION_NAME), divider = false,
-            leading = { io.github.jackwener.dsh.core.designsystem.Whale(width = 22.dp) })
+            leading = { io.github.jackwener.dsh.core.designsystem.CoingBadge(22.dp) })
         val s by vm.settings.collectAsStateWithLifecycle()
         io.github.jackwener.dsh.feature.update.UpdateSettingsRows(vm.updater, s.autoUpdateCheck, { vm.setAutoUpdateCheck(it) })
         vm.engineVersion?.let { SettingsRow(stringResource(R.string.engine_version), "DeepSeek Harness $it") }
@@ -715,11 +716,7 @@ fun Onboarding(showKey: Boolean, onShowKey: (Boolean) -> Unit, onDone: () -> Uni
         Box(Modifier.fillMaxSize().background(mc.background).statusBarsPadding().navigationBarsPadding().imePadding()) {
             Column(Modifier.align(Alignment.TopCenter).fillMaxWidth().padding(start = 24.dp, end = 24.dp, top = 64.dp),
                 horizontalAlignment = Alignment.CenterHorizontally) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    io.github.jackwener.dsh.core.designsystem.Whale(width = 34.dp)
-                    Spacer(Modifier.width(10.dp))
-                    Text(stringResource(R.string.hero_title), style = DshType.xl24.copy(fontWeight = androidx.compose.ui.text.font.FontWeight(500)), color = c.labelPrimary)
-                }
+                Text(stringResource(R.string.hero_title), style = DshType.xl24.copy(fontSize = 34.sp, fontWeight = androidx.compose.ui.text.font.FontWeight(600)), color = c.labelPrimary)
                 Spacer(Modifier.height(12.dp))
                 Text(stringResource(R.string.onb_tagline), style = DshType.s14, color = c.labelTertiary, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
             }

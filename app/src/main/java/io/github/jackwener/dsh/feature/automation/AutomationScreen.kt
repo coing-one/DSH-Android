@@ -67,7 +67,7 @@ import io.github.jackwener.dsh.core.designsystem.StateDot
 import io.github.jackwener.dsh.core.designsystem.DotKind
 import io.github.jackwener.dsh.core.designsystem.Tag
 import io.github.jackwener.dsh.core.designsystem.Tone
-import io.github.jackwener.dsh.core.designsystem.Whale
+import io.github.jackwener.dsh.core.designsystem.CoingBadge
 import io.github.jackwener.dsh.core.designsystem.pressable
 import io.github.jackwener.dsh.core.model.Condition
 import io.github.jackwener.dsh.core.model.RuleAction
@@ -127,7 +127,7 @@ fun AutomationScreen(onBack: () -> Unit, onNew: (String) -> Unit, onOpenRule: (L
             }
         }
         if (rules.isEmpty()) Column(Modifier.fillMaxSize().padding(32.dp), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
-            Whale(width = 40.dp, tint = c.labelCaption)
+            CoingBadge(40.dp)
             Spacer(Modifier.height(16.dp))
             Text(stringResource(R.string.rules_empty_title), style = DshType.base16m, color = c.labelPrimary)
             Spacer(Modifier.height(6.dp))
