@@ -1,0 +1,74 @@
+name: build-apk
+
+on:
+  push:
+    branches: [ui-affectui-native]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Setup Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install SDK packages (platform 37.2, build-tools)
+        run: |
+          yes | sdkmanager --licenses > /dev/null || true
+          sdkmanager "platform-tools"
+          sdkmanager "platforms;android-37.2" || sdkmanager "platforms;android-37"
+          sdkmanager "build-tools;37.0.0" || sdkmanager "build-tools;36.0.0" || true
+          echo "== installed platforms =="
+          ls "$ANDROID_HOME/platforms"
+          echo "== installed build-tools =="
+          ls "$ANDROID_HOME/build-tools" || true
+
+      - name: Fetch prebuilt native libs (libnode etc.)
+        run: |
+          TAG="$(native/prebuilt.sh key)"
+          echo "prebuilt tag: $TAG"
+          mkdir -p /tmp/prebuilt && cd /tmp/prebuilt
+          curl -fL -o "$TAG.tar.gz" "https://github.com/jackwener/DSH-Android/releases/download/$TAG/$TAG.tar.gz"
+          tar -xzf "$TAG.tar.gz"
+          sha256sum -c --quiet SHA256SUMS
+          mkdir -p "$GITHUB_WORKSPACE/toolchains/out/jniLibs/arm64-v8a"
+          cp arm64-v8a/*.so "$GITHUB_WORKSPACE/toolchains/out/jniLibs/arm64-v8a/"
+          ls -la "$GITHUB_WORKSPACE/toolchains/out/jniLibs/arm64-v8a"
+
+      - name: Build engine bundle (engine.zip)
+        run: OUT_DIR="$GITHUB_WORKSPACE/toolchains/out/engine" js/build-engine.sh
+
+      - name: Build release APK
+        # No dsh.signing.* properties in CI: build.gradle.kts falls back to the
+        # debug key, so the release APK is installable for UI verification.
+        run: ./gradlew :app:assembleRelease -Pdsh.engineOut="$GITHUB_WORKSPACE/toolchains/out/engine" -Pdsh.nativeOut="$GITHUB_WORKSPACE/toolchains/out/jniLibs" --stacktrace
+
+      - name: Collect APK
+        run: |
+          find app/build/outputs/apk -name "*.apk" -exec ls -la {} \;
+          cp app/build/outputs/apk/release/app-release.apk coing.apk
+          ls -la coing.apk
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: coing-apk
+          path: coing.apk
+          if-no-files-found: error
