@@ -85,6 +85,9 @@ val Hairline = 0.5.dp
 /** True when the user turned animations off (dsh disables shimmer/whale/spinners under reduced motion). */
 val LocalReducedMotion = staticCompositionLocalOf { false }
 
+/** The theme's resolved dark flag, for guest design systems (the Miuix pilot) that need to follow it. */
+val LocalDshDark = staticCompositionLocalOf { false }
+
 @Composable
 fun DshTheme(mode: ThemeMode = ThemeMode.System, content: @Composable () -> Unit) {
     val dark = when (mode) { ThemeMode.System -> isSystemInDarkTheme(); ThemeMode.Dark -> true; ThemeMode.Light -> false }
@@ -100,6 +103,7 @@ fun DshTheme(mode: ThemeMode = ThemeMode.System, content: @Composable () -> Unit
     }
     CompositionLocalProvider(
         LocalDshColors provides colors,
+        LocalDshDark provides dark,
         LocalReducedMotion provides reduced,
         LocalTextSelectionColors provides TextSelectionColors(colors.business, Color(0x66353638)),
     ) {

@@ -135,6 +135,9 @@ dependencies {
     implementation(libs.shizuku.provider)
     implementation(libs.coil.compose)
     implementation(libs.markdown.m3)
+    // Miuix pilot (onboarding + settings index): HyperOS-style components beside the Dsh design system.
+    implementation(libs.miuix.ui)
+    implementation(libs.miuix.preference)
     testImplementation(libs.junit)
     // Back-stack tests: the real nav graph on a TestNavHostController (Robolectric for the Android framework bits).
     testImplementation(libs.robolectric)

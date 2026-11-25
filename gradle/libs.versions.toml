@@ -27,6 +27,10 @@ pdfboxAndroid = "2.0.27.0"
 mlkitTextChinese = "16.0.1"
 sshd = "2.20.1"
 eddsa = "0.3.0"
+# Miuix 0.9.4: built with Kotlin 2.4.20 / JetBrains Compose 1.12.0 (androidx compose 1.12.0),
+# both <= this project's Kotlin 2.4.21 / compose BOM 2026.09.00 (1.12.1) — no toolchain bump.
+# (0.9.5-rc01 would drag in compose 1.13.0-rc01, so it is deliberately not used.)
+miuix = "0.9.4"
 
 [libraries]
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "coreKtx" }
@@ -67,6 +71,8 @@ mlkit-text-chinese = { module = "com.google.mlkit:text-recognition-chinese", ver
 sshd-core = { module = "org.apache.sshd:sshd-core", version.ref = "sshd" }
 eddsa = { module = "net.i2p.crypto:eddsa", version.ref = "eddsa" }
 markdown-m3 = { module = "com.mikepenz:multiplatform-markdown-renderer-m3", version.ref = "markdown" }
+miuix-ui = { module = "top.yukonga.miuix.kmp:miuix-ui", version.ref = "miuix" }
+miuix-preference = { module = "top.yukonga.miuix.kmp:miuix-preference", version.ref = "miuix" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

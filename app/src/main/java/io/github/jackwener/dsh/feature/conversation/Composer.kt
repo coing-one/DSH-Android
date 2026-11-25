@@ -28,6 +28,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -215,9 +216,13 @@ data class ComposerActions(
     val workingDirectory: String? = null,
 )
 
+/** The composer's own large corner (the approved reference structure): R28, independent of Radius.panel. */
+private val ComposerShape = RoundedCornerShape(28.dp)
+
 /**
  * dsh InputBar: R28 card on the input-major fill with the soft elevation; editor on top,
- * toolbar below: [+] [permission chip] [mode chip] … [context ring] [model chip] [send/stop 34].
+ * toolbar below: [+] [permission chip] [mode chip] … [context ring] [model chip] [mic] [send/stop 34].
+ * The model chip's label is the flexible element (weight + ellipsis); Send keeps its fixed 34 dp.
  */
 @Composable
 fun Composer(
@@ -318,7 +323,7 @@ fun Composer(
     val slash = SlashCommands.query(state.text)?.let { q -> commands.filter { SlashCommands.matches(q, it.id, it.label) } }.orEmpty()
 
     Column(
-        modifier.fillMaxWidth().elevated(Radius.panel, c.borderL2, 8.dp).clip(Radius.panel).background(c.inputMajor).padding(top = 8.dp),
+        modifier.fillMaxWidth().elevated(ComposerShape, c.borderL2, 8.dp).clip(ComposerShape).background(c.inputMajor).padding(top = 8.dp),
     ) {
         if (slash.isNotEmpty()) Column(Modifier.fillMaxWidth().heightIn(max = 220.dp).verticalScroll(rememberScrollState()).padding(horizontal = 6.dp, vertical = 2.dp)) {
             slash.forEach { cmd -> MenuItem(cmd.label, { state.text = ""; cmd.run() }, cmd.icon, cmd.description) }

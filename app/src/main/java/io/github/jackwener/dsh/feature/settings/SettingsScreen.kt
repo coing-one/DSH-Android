@@ -13,6 +13,7 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -28,6 +29,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
@@ -48,6 +50,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
@@ -71,6 +74,7 @@ import io.github.jackwener.dsh.core.designsystem.DSwitch
 import io.github.jackwener.dsh.core.designsystem.DTopBar
 import io.github.jackwener.dsh.core.designsystem.DotKind
 import io.github.jackwener.dsh.core.designsystem.Dsh
+import io.github.jackwener.dsh.core.designsystem.DshMiuixTheme
 import io.github.jackwener.dsh.core.designsystem.DshType
 import io.github.jackwener.dsh.core.designsystem.FilterPill
 import io.github.jackwener.dsh.core.designsystem.Fmt
@@ -93,6 +97,13 @@ import io.github.jackwener.dsh.nav.ProviderRoute
 import io.github.jackwener.dsh.nav.Route
 import io.github.jackwener.dsh.nav.SectionRoute
 import kotlinx.coroutines.launch
+import top.yukonga.miuix.kmp.basic.Button
+import top.yukonga.miuix.kmp.basic.ButtonDefaults
+import top.yukonga.miuix.kmp.basic.Card
+import top.yukonga.miuix.kmp.basic.TextField
+import top.yukonga.miuix.kmp.basic.Text as MiuixText
+import top.yukonga.miuix.kmp.preference.ArrowPreference
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 private fun openKeyPage(context: android.content.Context) {
     runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://platform.deepseek.com/api_keys")).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
@@ -136,7 +147,10 @@ fun SettingsPage(title: String, onBack: () -> Unit, content: @Composable () -> U
 @Composable
 fun SettingsIndexScreen(onBack: () -> Unit, open: (Route) -> Unit, vm: SettingsViewModel = hiltViewModel()) =
     SettingsPage(stringResource(R.string.settings), onBack) {
-        SettingsIndex(vm.settings.collectAsStateWithLifecycle().value.extUpdateBadge) { open(SectionRoute(it)) }
+        // Miuix pilot: the settings index is a Miuix Card of ArrowPreference rows.
+        DshMiuixTheme {
+            SettingsIndexMiuix(vm.settings.collectAsStateWithLifecycle().value.extUpdateBadge) { open(SectionRoute(it)) }
+        }
     }
 
 /** One settings section page; its sub-pages are opened with [open]. [onTop]: the current page (sheets show on one page only). */
@@ -183,20 +197,20 @@ fun ModeScreen(route: ModeRoute, onBack: () -> Unit, onReplace: (String) -> Unit
 }
 
 @Composable
-private fun SettingsIndex(extUpdates: Int, onOpen: (SettingsSection) -> Unit) {
+private fun SettingsIndexMiuix(extUpdates: Int, onOpen: (SettingsSection) -> Unit) {
     val c = Dsh.colors
     Spacer(Modifier.height(8.dp))
-    SettingsCard {
-        SettingsSection.entries.forEachIndexed { i, s ->
-            SettingsRow(stringResource(s.label), divider = i > 0, onClick = { onOpen(s) },
-                leading = { DIcon(s.icon, size = 18.dp, tint = c.labelSecondary) },
-                trailing = {
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        // 扩展: "N 个可更新" (updates are never automatic, §7.3).
-                        if (s == SettingsSection.Extensions && extUpdates > 0) Tag(stringResource(R.string.ext_updates_badge, extUpdates), Tone.Info)
-                        DIcon(R.drawable.dsw_chevron_right_outline, size = 14.dp, tint = c.labelTertiary)
-                    }
-                })
+    Card(Modifier.fillMaxWidth()) {
+        SettingsSection.entries.forEach { s ->
+            ArrowPreference(
+                title = stringResource(s.label),
+                startAction = { DIcon(s.icon, size = 20.dp, tint = c.labelSecondary) },
+                endActions = {
+                    // 扩展: "N 个可更新" (updates are never automatic, §7.3).
+                    if (s == SettingsSection.Extensions && extUpdates > 0) Tag(stringResource(R.string.ext_updates_badge, extUpdates), Tone.Info)
+                },
+                onClick = { onOpen(s) },
+            )
         }
     }
 }
@@ -694,45 +708,63 @@ fun Onboarding(showKey: Boolean, onShowKey: (Boolean) -> Unit, onDone: () -> Uni
     val context = LocalContext.current
     var key by remember { mutableStateOf("") }
     LaunchedEffect(accountState.signedIn) { if (accountState.signedIn) onDone() }
-    Column(Modifier.fillMaxSize().background(c.bgBase).statusBarsPadding().navigationBarsPadding().imePadding().verticalScroll(rememberScrollState()).padding(24.dp),
-        verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
-        Spacer(Modifier.height(48.dp))
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            io.github.jackwener.dsh.core.designsystem.Whale(width = 34.dp)
-            Spacer(Modifier.width(10.dp))
-            Text(stringResource(R.string.hero_title), style = DshType.xl24.copy(fontWeight = androidx.compose.ui.text.font.FontWeight(500)), color = c.labelPrimary)
-        }
-        Spacer(Modifier.height(12.dp))
-        Text(stringResource(R.string.onb_tagline), style = DshType.s14, color = c.labelTertiary, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
-        Spacer(Modifier.height(32.dp))
-        SettingsCard {
-            Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text(stringResource(R.string.acct_login_title), style = DshType.base16m, color = c.labelPrimary)
-                Text(stringResource(R.string.acct_login_desc), style = DshType.xs13, color = c.labelTertiary)
-                DButton(stringResource(R.string.onb_sign_in), { account.startSignIn() }, Modifier.fillMaxWidth(), size = BtnSize.Lg,
-                    enabled = !accountState.active)
-                DButton(stringResource(R.string.onb_use_key), { onShowKey(!showKey) }, Modifier.fillMaxWidth(), variant = BtnVariant.Outline, size = BtnSize.Lg)
-                if (showKey) {
-                    HDividerSpaced()
-                    Text(stringResource(R.string.onb_key_body), style = DshType.xs13, color = c.labelTertiary)
-                    DInput(key, { key = it }, placeholder = "sk-…", secret = true, keyboardType = KeyboardType.Password)
-                    when (status) {
-                        null -> {}
-                        "checking" -> Text(stringResource(R.string.key_checking), style = DshType.xxs12, color = c.labelTertiary)
-                        else -> Text(stringResource(R.string.key_invalid, status!!), style = DshType.xxs12, color = c.error)
-                    }
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(stringResource(R.string.key_get), Modifier.weight(1f).clip(Radius.sm).clickable { openKeyPage(context) }.padding(vertical = 6.dp),
-                            style = DshType.xs13, color = c.link)
-                        DButton(stringResource(R.string.continue_), { scope.launch { if (vm.saveKey(key) == null) onDone() } }, enabled = key.isNotBlank() && status != "checking")
+    // Miuix pilot page: brand block pinned to the top, the 开始使用 action card anchored to the
+    // bottom (thumb zone) with clean space between — not the old vertically-centered stack.
+    DshMiuixTheme {
+        val mc = MiuixTheme.colorScheme
+        Box(Modifier.fillMaxSize().background(mc.background).statusBarsPadding().navigationBarsPadding().imePadding()) {
+            Column(Modifier.align(Alignment.TopCenter).fillMaxWidth().padding(start = 24.dp, end = 24.dp, top = 64.dp),
+                horizontalAlignment = Alignment.CenterHorizontally) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    io.github.jackwener.dsh.core.designsystem.Whale(width = 34.dp)
+                    Spacer(Modifier.width(10.dp))
+                    Text(stringResource(R.string.hero_title), style = DshType.xl24.copy(fontWeight = androidx.compose.ui.text.font.FontWeight(500)), color = c.labelPrimary)
+                }
+                Spacer(Modifier.height(12.dp))
+                Text(stringResource(R.string.onb_tagline), style = DshType.s14, color = c.labelTertiary, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+            }
+            Column(Modifier.align(Alignment.BottomCenter).fillMaxWidth().verticalScroll(rememberScrollState()).padding(start = 24.dp, end = 24.dp, bottom = 20.dp),
+                horizontalAlignment = Alignment.CenterHorizontally) {
+                Card(Modifier.fillMaxWidth(), insideMargin = PaddingValues(20.dp)) {
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Text(stringResource(R.string.acct_login_title), style = DshType.base16m, color = c.labelPrimary)
+                        Text(stringResource(R.string.acct_login_desc), style = DshType.xs13, color = c.labelTertiary)
+                        Button({ account.startSignIn() }, Modifier.fillMaxWidth(), enabled = !accountState.active,
+                            colors = ButtonDefaults.buttonColorsPrimary(), minHeight = 52.dp) {
+                            MiuixText(stringResource(R.string.onb_sign_in))
+                        }
+                        Button({ onShowKey(!showKey) }, Modifier.fillMaxWidth(), minHeight = 52.dp) {
+                            MiuixText(stringResource(R.string.onb_use_key))
+                        }
+                        if (showKey) {
+                            HDividerSpaced()
+                            Text(stringResource(R.string.onb_key_body), style = DshType.xs13, color = c.labelTertiary)
+                            TextField(key, { key = it }, Modifier.fillMaxWidth(), label = "sk-…", useLabelAsPlaceholder = true,
+                                visualTransformation = PasswordVisualTransformation(),
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password))
+                            when (status) {
+                                null -> {}
+                                "checking" -> Text(stringResource(R.string.key_checking), style = DshType.xxs12, color = c.labelTertiary)
+                                else -> Text(stringResource(R.string.key_invalid, status!!), style = DshType.xxs12, color = c.error)
+                            }
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(stringResource(R.string.key_get), Modifier.weight(1f).clip(Radius.sm).clickable { openKeyPage(context) }.padding(vertical = 6.dp),
+                                    style = DshType.xs13, color = c.link)
+                                Button({ scope.launch { if (vm.saveKey(key) == null) onDone() } },
+                                    enabled = key.isNotBlank() && status != "checking",
+                                    colors = ButtonDefaults.buttonColorsPrimary()) {
+                                    MiuixText(stringResource(R.string.continue_))
+                                }
+                            }
+                        }
                     }
                 }
+                Spacer(Modifier.height(12.dp))
+                Text(stringResource(R.string.onb_third_party), Modifier.clip(Radius.sm).clickable(onClick = onThirdParty).padding(8.dp), style = DshType.xs13, color = c.link)
+                Spacer(Modifier.height(4.dp))
+                Text(stringResource(R.string.onb_disclaimer), style = DshType.xxs12, color = c.labelTertiary, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
             }
         }
-        Spacer(Modifier.height(12.dp))
-        Text(stringResource(R.string.onb_third_party), Modifier.clip(Radius.sm).clickable(onClick = onThirdParty).padding(8.dp), style = DshType.xs13, color = c.link)
-        Spacer(Modifier.height(4.dp))
-        Text(stringResource(R.string.onb_disclaimer), style = DshType.xxs12, color = c.labelTertiary, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
     }
 }
 
