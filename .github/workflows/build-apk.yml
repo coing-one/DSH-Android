@@ -26,15 +26,17 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-
+      # No setup-android action: v3 installs the legacy 'tools' package, which no
+      # longer exists in the SDK repository. ubuntu-latest runners ship an
+      # Android SDK at $ANDROID_HOME already; just add the packages we need.
       - name: Install SDK packages (platform 37.2, build-tools)
         run: |
-          yes | sdkmanager --licenses > /dev/null || true
-          sdkmanager "platform-tools"
-          sdkmanager "platforms;android-37.2" || sdkmanager "platforms;android-37"
-          sdkmanager "build-tools;37.0.0" || sdkmanager "build-tools;36.0.0" || true
+          SDKMANAGER="$(command -v sdkmanager || echo "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager")"
+          echo "sdkmanager: $SDKMANAGER"
+          yes | "$SDKMANAGER" --licenses > /dev/null || true
+          "$SDKMANAGER" "platform-tools"
+          "$SDKMANAGER" "platforms;android-37.2" || "$SDKMANAGER" "platforms;android-37"
+          "$SDKMANAGER" "build-tools;37.0.0" || "$SDKMANAGER" "build-tools;36.0.0" || true
           echo "== installed platforms =="
           ls "$ANDROID_HOME/platforms"
           echo "== installed build-tools =="
