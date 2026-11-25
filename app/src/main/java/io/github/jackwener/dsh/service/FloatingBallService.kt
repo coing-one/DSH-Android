@@ -445,7 +445,7 @@ class FloatingBallService : Service() {
     companion object {
         private const val SHOT_HIDE_MS = 120L
         private const val CAPSULE_FILL = 0xE60F1115.toInt()
-        private const val COLOR_WORKING = 0xFF4176E6.toInt()
+        private const val COLOR_WORKING = 0xFF0F1115.toInt()
         private const val COLOR_NEEDS_YOU = 0xFFF59E0B.toInt()
         private const val COLOR_DONE = 0xFF22C55E.toInt()
         private const val COLOR_STOPPED = 0xFF9CA3AF.toInt()

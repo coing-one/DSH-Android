@@ -69,12 +69,12 @@ private val M3Typography = Typography(
 /** dsh radius tiers (docs/ui-radius.md). */
 object Radius {
     val xs = RoundedCornerShape(4.dp)
-    val sm = RoundedCornerShape(8.dp)
-    val tile = RoundedCornerShape(10.dp)
-    val md = RoundedCornerShape(12.dp)
-    val lg = RoundedCornerShape(16.dp)
-    val xl = RoundedCornerShape(20.dp)
-    val panel = RoundedCornerShape(28.dp)
+    val sm = RoundedCornerShape(6.dp)
+    val tile = RoundedCornerShape(8.dp)
+    val md = RoundedCornerShape(10.dp)
+    val lg = RoundedCornerShape(12.dp)
+    val xl = RoundedCornerShape(12.dp)
+    val panel = RoundedCornerShape(16.dp)
 }
 
 private val M3Shapes = Shapes(extraSmall = Radius.xs, small = Radius.sm, medium = Radius.md, large = Radius.lg, extraLarge = Radius.panel)
@@ -101,7 +101,7 @@ fun DshTheme(mode: ThemeMode = ThemeMode.System, content: @Composable () -> Unit
     CompositionLocalProvider(
         LocalDshColors provides colors,
         LocalReducedMotion provides reduced,
-        LocalTextSelectionColors provides TextSelectionColors(colors.business, Color(0x663B82F6)),
+        LocalTextSelectionColors provides TextSelectionColors(colors.business, Color(0x66353638)),
     ) {
         MaterialTheme(colorScheme = schemeOf(colors), typography = M3Typography, shapes = M3Shapes, content = content)
     }
