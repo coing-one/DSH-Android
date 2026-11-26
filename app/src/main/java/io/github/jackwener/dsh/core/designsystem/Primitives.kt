@@ -117,9 +117,14 @@ fun IconBtn(
     enabled: Boolean = true,
     shape: Shape = Radius.sm,
 ) {
-    Box(modifier.size(size).alpha(if (enabled) 1f else 0.4f).pressable(onClick, shape, enabled), contentAlignment = Alignment.Center) {
-        DIcon(res, size = iconSize, tint = tint, contentDescription = contentDescription)
-    }
+    // Miuix IconButton underneath; [shape] is kept for source compatibility (Miuix uses its
+    // own corner radius), the disabled fade is applied here as Miuix does not dim content.
+    top.yukonga.miuix.kmp.basic.IconButton(
+        onClick = onClick,
+        modifier = modifier.alpha(if (enabled) 1f else 0.4f),
+        enabled = enabled,
+        minWidth = size, minHeight = size,
+    ) { DIcon(res, size = iconSize, tint = tint, contentDescription = contentDescription) }
 }
 
 enum class BtnVariant { Primary, Outline, Ghost, Danger, Info }
@@ -137,25 +142,39 @@ fun DButton(
     enabled: Boolean = true,
     @DrawableRes icon: Int? = null,
 ) {
+    // Miuix Button underneath (the HyperOS button for every call site); the variant only
+    // picks the Miuix color set: Primary = primary, Outline = the secondary-variant fill
+    // (HyperOS has no outlined button), Ghost = transparent, Danger/Info = tinted fills.
     val c = Dsh.colors
-    val (bg, fg) = when (variant) {
-        BtnVariant.Primary -> c.brandPrimary to c.labelOnPrimary
-        BtnVariant.Info -> c.info to Color.White
-        BtnVariant.Outline -> Color.Transparent to c.labelPrimary
-        BtnVariant.Ghost -> Color.Transparent to c.labelSecondary
-        BtnVariant.Danger -> c.hoverDanger to c.error
+    val colors = when (variant) {
+        BtnVariant.Primary -> top.yukonga.miuix.kmp.basic.ButtonDefaults.buttonColorsPrimary()
+        BtnVariant.Info -> top.yukonga.miuix.kmp.basic.ButtonDefaults.buttonColors(
+            color = c.info, disabledColor = c.info.copy(alpha = 0.4f),
+            contentColor = Color.White, disabledContentColor = Color.White)
+        BtnVariant.Outline -> top.yukonga.miuix.kmp.basic.ButtonDefaults.buttonColors()
+        BtnVariant.Ghost -> top.yukonga.miuix.kmp.basic.ButtonDefaults.buttonColors(
+            color = Color.Transparent, disabledColor = Color.Transparent,
+            contentColor = c.labelSecondary, disabledContentColor = c.labelTertiary)
+        BtnVariant.Danger -> top.yukonga.miuix.kmp.basic.ButtonDefaults.buttonColors(
+            color = c.hoverDanger, disabledColor = c.hoverDanger,
+            contentColor = c.error, disabledContentColor = c.error.copy(alpha = 0.5f))
     }
-    Row(
-        modifier.heightIn(min = size.height).alpha(if (enabled) 1f else 0.4f)
-            .clip(size.shape).background(bg)
-            .then(if (variant == BtnVariant.Outline) Modifier.border(Hairline, c.borderL3, size.shape) else Modifier)
-            .pressable(onClick, size.shape, enabled)
-            .padding(horizontal = size.hPad),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterHorizontally),
+    top.yukonga.miuix.kmp.basic.Button(
+        onClick = onClick,
+        modifier = modifier,
+        enabled = enabled,
+        cornerRadius = when (size) { BtnSize.Sm -> 10.dp; BtnSize.Md -> 14.dp; BtnSize.Lg -> 16.dp },
+        minWidth = 0.dp,
+        minHeight = size.height,
+        colors = colors,
+        insideMargin = PaddingValues(horizontal = size.hPad, vertical = 0.dp),
     ) {
-        if (icon != null) DIcon(icon, size = 14.dp, tint = fg)
-        Text(text, style = size.style, color = fg, maxLines = 1)
+        if (icon != null) {
+            // Miuix Button provides its own LocalContentColor (miuix theme), not material3's.
+            DIcon(icon, size = 14.dp, tint = top.yukonga.miuix.kmp.theme.LocalContentColor.current)
+            Spacer(Modifier.width(4.dp))
+        }
+        top.yukonga.miuix.kmp.basic.Text(text, style = size.style, maxLines = 1)
     }
 }
 
@@ -186,17 +205,16 @@ fun StateDot(kind: DotKind, size: Dp = 6.dp) {
     }))
 }
 
-/** Rotating arc, 1.5 s per turn (StateDot ongoing). */
+/** Ongoing indicator (StateDot ongoing): the Miuix circular progress indicator. */
 @Composable
 fun Spinner(size: Dp = 14.dp, color: Color = Dsh.colors.labelTertiary, stroke: Dp = 1.5.dp) {
-    val reduced = LocalReducedMotion.current
-    val angle = if (reduced) 0f else rememberInfiniteTransition(label = "spin")
-        .animateFloat(0f, 360f, infiniteRepeatable(tween(1500, easing = LinearEasing)), label = "a").value
-    Canvas(Modifier.size(size).rotate(angle)) {
-        val w = stroke.toPx()
-        drawCircle(color.copy(alpha = 0.25f), style = Stroke(w), radius = this.size.minDimension / 2 - w)
-        drawArc(color, -90f, 100f, false, style = Stroke(w, cap = StrokeCap.Round),
-            topLeft = Offset(w, w), size = androidx.compose.ui.geometry.Size(this.size.width - 2 * w, this.size.height - 2 * w))
+    val colors = top.yukonga.miuix.kmp.basic.ProgressIndicatorDefaults.progressIndicatorColors(
+        foregroundColor = color, backgroundColor = color.copy(alpha = 0.25f))
+    // Reduced motion keeps a static arc instead of the rotating indeterminate animation.
+    if (LocalReducedMotion.current) {
+        top.yukonga.miuix.kmp.basic.CircularProgressIndicator(progress = 0.3f, colors = colors, strokeWidth = stroke, size = size)
+    } else {
+        top.yukonga.miuix.kmp.basic.CircularProgressIndicator(colors = colors, strokeWidth = stroke, size = size)
     }
 }
 
@@ -311,22 +329,16 @@ fun FilterPill(text: String, selected: Boolean, onClick: () -> Unit) {
         style = DshType.xs13m, color = if (selected) c.labelPrimary else c.labelSecondary)
 }
 
-/** dsh SegmentedControl: R12 track, 4 dp inset, R8 sliding segment. */
+/** Segmented selection: the Miuix TabRow (HyperOS segmented tab bar) underneath. */
 @Composable
 fun Segmented(options: List<String>, selected: Int, onSelect: (Int) -> Unit, modifier: Modifier = Modifier, compact: Boolean = false) {
-    val c = Dsh.colors
-    Row(modifier.clip(Radius.md).background(c.selector).padding(if (compact) 2.dp else 3.dp), horizontalArrangement = Arrangement.spacedBy(2.dp)) {
-        options.forEachIndexed { i, label ->
-            val on = i == selected
-            Box(
-                (if (compact) Modifier else Modifier.weight(1f)).clip(Radius.sm)
-                    .then(if (on) Modifier.shadow(1.dp, Radius.sm).background(if (c.isDark) c.bgLayer3 else Color.White) else Modifier)
-                    .selectable(on, role = Role.Tab) { onSelect(i) }
-                    .padding(horizontal = if (compact) 12.dp else 10.dp, vertical = if (compact) 3.dp else 6.dp),
-                contentAlignment = Alignment.Center,
-            ) { Text(label, style = DshType.xs13m, color = if (on) c.labelPrimary else c.labelTertiary, maxLines = 1) }
-        }
-    }
+    if (options.isEmpty()) return
+    top.yukonga.miuix.kmp.basic.TabRow(
+        tabs = options,
+        selectedTabIndex = selected.coerceIn(0, options.size - 1),
+        onTabSelected = onSelect,
+        modifier = modifier,
+    )
 }
 
 // ---- menus ------------------------------------------------------------------------------------
@@ -378,11 +390,15 @@ fun MenuSectionTitle(text: String) =
     Text(text, Modifier.padding(start = 8.dp, top = 8.dp, bottom = 2.dp), style = DshType.xxxs11m, color = Dsh.colors.labelTertiary)
 
 @Composable
-fun MenuDivider() = Box(Modifier.padding(vertical = 4.dp, horizontal = 8.dp).fillMaxWidth().height(Hairline).background(Dsh.colors.borderL2))
+fun MenuDivider() = top.yukonga.miuix.kmp.basic.HorizontalDivider(Modifier.padding(vertical = 4.dp, horizontal = 8.dp).fillMaxWidth())
 
 // ---- dialogs ----------------------------------------------------------------------------------
 
-/** dsh Modal: bg-layer-2, R28, prominent elevation, 24 dp padding, 20 dp gap. */
+/**
+ * Modal dialog: the Miuix WindowDialog underneath (HyperOS form — bottom-attached sheet
+ * style on phones, centered on large screens; it renders the title and owns the insets).
+ * Content scrolls between the fixed title and the button row, as before.
+ */
 @Composable
 fun DDialog(
     onDismiss: () -> Unit,
@@ -391,15 +407,13 @@ fun DDialog(
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val c = Dsh.colors
-    Dialog(onDismiss, DialogProperties(usePlatformDefaultWidth = false)) {
-        Column(
-            Modifier.padding(24.dp).widthIn(max = 420.dp).fillMaxWidth().elevated(Radius.dialog, c.borderL4, 12.dp)
-                .clip(Radius.dialog).background(c.bgLayer2).padding(24.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
-            Text(title, style = DshType.l20, color = c.labelPrimary)
-            // Long content (e.g. the skills found in a repository, #76) scrolls between the fixed title and buttons.
-            Column(Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+    top.yukonga.miuix.kmp.window.WindowDialog(
+        show = true,
+        title = title,
+        onDismissRequest = onDismiss,
+    ) {
+        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 CompositionLocalProvider(LocalContentColor provides c.labelSecondary) { content() }
             }
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End), content = buttons)
@@ -454,20 +468,21 @@ fun DInput(
 
 // ---- settings cards -----------------------------------------------------------------------------
 
-/** Grouped settings card (Miuix surface): white, R24, borderless; rows separated by hairlines. */
+/** Grouped settings card: the Miuix Card (rows inside own their padding, hence 0 margin). */
 @Composable
 fun SettingsCard(modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit) {
-    val c = Dsh.colors
-    Column(modifier.fillMaxWidth().clip(Radius.card).background(c.bgLayer2), content = content)
+    top.yukonga.miuix.kmp.basic.Card(modifier = modifier, insideMargin = PaddingValues(0.dp), content = content)
 }
 
 @Composable
 fun SettingsGroupTitle(text: String) =
-    Text(text, Modifier.padding(start = 4.dp, top = 20.dp, bottom = 8.dp), style = DshType.xs13m, color = Dsh.colors.labelTertiary)
+    top.yukonga.miuix.kmp.basic.SmallTitle(text, insideMargin = PaddingValues(start = 16.dp, top = 20.dp, bottom = 8.dp))
 
 /**
- * One settings row. On narrow screens dsh stacks the label above the control; short trailing
- * controls (switches, chevrons) stay inline.
+ * One settings row: a Miuix preference row underneath. A navigable row (click, nothing
+ * trailing) is an ArrowPreference; any other row is a BasicComponent with the trailing
+ * control in its end actions — or in the bottom action when [stacked]. HyperOS cards are
+ * dividerless, so [divider] no longer draws the old hairline (kept for source compatibility).
  */
 @Composable
 fun SettingsRow(
@@ -480,31 +495,28 @@ fun SettingsRow(
     leading: (@Composable () -> Unit)? = null,
     trailing: (@Composable () -> Unit)? = null,
 ) {
-    val c = Dsh.colors
-    Column {
-        if (divider) Box(Modifier.padding(start = 16.dp).fillMaxWidth().height(Hairline).background(c.borderL2))
-        val base = Modifier.fillMaxWidth().then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier).padding(horizontal = 16.dp, vertical = 12.dp)
-        if (stacked) Column(base, verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                Text(title, style = DshType.s14, color = titleColor)
-                if (description != null) Text(description, style = DshType.xs13, color = c.labelTertiary)
-            }
-            trailing?.invoke()
-        } else Row(base, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            leading?.invoke()
-            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                Text(title, style = DshType.s14, color = titleColor)
-                if (description != null) Text(description, style = DshType.xs13, color = c.labelTertiary)
-            }
-            trailing?.invoke()
-            // Navigable rows read as Miuix preferences: a trailing chevron when nothing else sits there.
-            if (onClick != null && trailing == null) DIcon(R.drawable.dsw_chevron_right_outline, size = 14.dp, tint = c.labelTertiary)
-        }
+    val titleColors = top.yukonga.miuix.kmp.basic.BasicComponentDefaults.titleColor(color = titleColor)
+    when {
+        stacked -> top.yukonga.miuix.kmp.basic.BasicComponent(
+            title = title, titleColor = titleColors, summary = description,
+            startAction = leading, bottomAction = trailing, onClick = onClick,
+        )
+        onClick != null && trailing == null -> top.yukonga.miuix.kmp.preference.ArrowPreference(
+            title = title, titleColor = titleColors, summary = description,
+            startAction = leading, onClick = onClick,
+        )
+        else -> top.yukonga.miuix.kmp.basic.BasicComponent(
+            title = title, titleColor = titleColors, summary = description,
+            startAction = leading,
+            endActions = trailing?.let { t -> { t() } },
+            onClick = onClick,
+        )
     }
 }
 
 @Composable
-fun HDivider(modifier: Modifier = Modifier) = Box(modifier.fillMaxWidth().height(Hairline).background(Dsh.colors.borderL2))
+fun HDivider(modifier: Modifier = Modifier) =
+    top.yukonga.miuix.kmp.basic.HorizontalDivider(modifier = modifier.fillMaxWidth())
 
 @Composable
 fun Chevron(modifier: Modifier = Modifier, open: Boolean = false, size: Dp = 14.dp, tint: Color = Dsh.colors.labelTertiary) {
@@ -512,16 +524,22 @@ fun Chevron(modifier: Modifier = Modifier, open: Boolean = false, size: Dp = 14.
     DIcon(R.drawable.dsw_chevron_down_outline, modifier.rotate(r), size = size, tint = tint)
 }
 
-/** Small top-bar for secondary screens (back · title · actions). */
+/** Small top-bar for secondary screens: the Miuix SmallTopAppBar underneath. Callers own
+ *  the status-bar inset (as before), so the bar itself adds no window padding; its surface
+ *  is transparent so each page's background shows through unchanged. */
 @Composable
 fun DTopBar(title: String, onBack: (() -> Unit)?, modifier: Modifier = Modifier, actions: @Composable RowScope.() -> Unit = {}) {
-    Row(modifier.fillMaxWidth().height(56.dp).padding(horizontal = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-        if (onBack != null) IconBtn(R.drawable.dsw_chevron_left_outline, onBack, size = 40.dp, iconSize = 18.dp, tint = Dsh.colors.labelPrimary,
-            contentDescription = androidx.compose.ui.res.stringResource(R.string.back))
-        else Spacer(Modifier.width(8.dp))
-        Text(title, Modifier.weight(1f).padding(horizontal = 4.dp), style = DshType.base16m, color = Dsh.colors.labelPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis)
-        actions()
-    }
+    top.yukonga.miuix.kmp.basic.SmallTopAppBar(
+        title = title,
+        modifier = modifier,
+        color = Color.Transparent,
+        defaultWindowInsetsPadding = false,
+        navigationIcon = {
+            if (onBack != null) IconBtn(R.drawable.dsw_chevron_left_outline, onBack, size = 40.dp, iconSize = 18.dp, tint = Dsh.colors.labelPrimary,
+                contentDescription = androidx.compose.ui.res.stringResource(R.string.back))
+        },
+        actions = actions,
+    )
 }
 
 /** Empty-state text block. */

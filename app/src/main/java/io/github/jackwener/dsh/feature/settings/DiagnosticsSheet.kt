@@ -53,12 +53,10 @@ import io.github.jackwener.dsh.core.designsystem.copyText
 fun DiagnosticsSheet(text: String, onDismiss: () -> Unit) {
     val c = Dsh.colors
     val context = LocalContext.current
-    val sheet = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val scope = rememberCoroutineScope()
     var exported by remember { mutableStateOf<String?>(null) }
-    ModalBottomSheet(onDismiss, sheetState = sheet, containerColor = c.bgLayer2,
-        shape = Radius.panel.copy(bottomStart = androidx.compose.foundation.shape.CornerSize(0.dp), bottomEnd = androidx.compose.foundation.shape.CornerSize(0.dp)),
-        scrimColor = c.scrim, tonalElevation = 0.dp) {
+    // Miuix WindowBottomSheet (HyperOS sheet form; it owns the surface, handle and insets).
+    top.yukonga.miuix.kmp.window.WindowBottomSheet(show = true, onDismissRequest = onDismiss) {
         Column(Modifier.fillMaxWidth().heightIn(max = (LocalConfiguration.current.screenHeightDp * 0.85f).dp).navigationBarsPadding().padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Text(stringResource(R.string.diag_title), style = DshType.s14m, color = c.labelPrimary)

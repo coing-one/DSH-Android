@@ -141,24 +141,31 @@ private fun ConversationPane(vm: HomeViewModel, onMenu: () -> Unit, onSettings: 
     val waitingOnUser = live.approval != null || live.question != null || live.permission != null || live.takeover != null
     CompositionLocalProvider(LocalReducedMotion provides (LocalReducedMotion.current || waitingOnUser)) {
     Column(Modifier.fillMaxSize().background(c.bgLayer1).statusBarsPadding()) {
-        Row(Modifier.fillMaxWidth().height(52.dp).padding(horizontal = 6.dp), verticalAlignment = Alignment.CenterVertically) {
-            IconBtn(R.drawable.dsw_panel_left_outline, onMenu, size = 40.dp, iconSize = 18.dp, tint = c.labelPrimary, contentDescription = stringResource(R.string.open_sidebar))
-            Text(if (empty) "" else live.title.ifBlank { conv.turns.firstOrNull()?.user?.text?.lineSequence()?.firstOrNull() ?: stringResource(R.string.new_session) },
-                Modifier.weight(1f).padding(horizontal = 4.dp), style = DshType.s14m, color = c.labelPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis)
-            // Remote mode (#51): which computer this conversation runs on, and its link.
-            val remote by vm.remote.collectAsStateWithLifecycle()
-            remote?.let { RemoteBadge(it, onDisconnect = { vm.disconnectRemote() }, onHostSettings = { onSettings("Remote") }) }
-            // 对话 / 轨迹: one icon toggle instead of a segmented control, so the title keeps its room at 360 dp.
-            if (!empty) {
-                val traj = view == SessionView.Trajectory
-                IconBtn(if (traj) R.drawable.dsw_flat_list_outline else R.drawable.dsw_inspect_outline,
-                    { vm.view.value = if (traj) SessionView.Chat else SessionView.Trajectory }, size = 40.dp, iconSize = 18.dp,
-                    tint = if (traj) c.labelPrimary else c.labelSecondary,
-                    contentDescription = stringResource(if (traj) R.string.view_chat else R.string.view_trajectory))
-            }
-            // Nothing to leave on the empty home, so no 新会话 there.
-            if (!empty) IconBtn(R.drawable.dsw_new_chat_outline, { vm.newSession(null) }, size = 40.dp, iconSize = 18.dp, tint = c.labelPrimary, contentDescription = stringResource(R.string.new_session))
-        }
+        // Miuix SmallTopAppBar (the column already carries the status-bar inset, so the bar
+        // adds no window padding of its own; its surface matches the pane background).
+        top.yukonga.miuix.kmp.basic.SmallTopAppBar(
+            title = if (empty) "" else live.title.ifBlank { conv.turns.firstOrNull()?.user?.text?.lineSequence()?.firstOrNull() ?: stringResource(R.string.new_session) },
+            color = c.bgLayer1,
+            defaultWindowInsetsPadding = false,
+            navigationIcon = {
+                IconBtn(R.drawable.dsw_panel_left_outline, onMenu, size = 40.dp, iconSize = 18.dp, tint = c.labelPrimary, contentDescription = stringResource(R.string.open_sidebar))
+            },
+            actions = {
+                // Remote mode (#51): which computer this conversation runs on, and its link.
+                val remote by vm.remote.collectAsStateWithLifecycle()
+                remote?.let { RemoteBadge(it, onDisconnect = { vm.disconnectRemote() }, onHostSettings = { onSettings("Remote") }) }
+                // 对话 / 轨迹: one icon toggle instead of a segmented control, so the title keeps its room at 360 dp.
+                if (!empty) {
+                    val traj = view == SessionView.Trajectory
+                    IconBtn(if (traj) R.drawable.dsw_flat_list_outline else R.drawable.dsw_inspect_outline,
+                        { vm.view.value = if (traj) SessionView.Chat else SessionView.Trajectory }, size = 40.dp, iconSize = 18.dp,
+                        tint = if (traj) c.labelPrimary else c.labelSecondary,
+                        contentDescription = stringResource(if (traj) R.string.view_chat else R.string.view_trajectory))
+                }
+                // Nothing to leave on the empty home, so no 新会话 there.
+                if (!empty) IconBtn(R.drawable.dsw_new_chat_outline, { vm.newSession(null) }, size = 40.dp, iconSize = 18.dp, tint = c.labelPrimary, contentDescription = stringResource(R.string.new_session))
+            },
+        )
         val agentDisplay by vm.agentDisplay.collectAsStateWithLifecycle()
         agentDisplay?.takeIf { live.running }?.let { AgentPreview(vm, it) }
         // Each conversation's list position and tail-following outlive 轨迹 and switching away (#76).
