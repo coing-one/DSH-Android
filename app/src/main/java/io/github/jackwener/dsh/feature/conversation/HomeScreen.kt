@@ -189,23 +189,32 @@ private fun ConversationPane(vm: HomeViewModel, onMenu: () -> Unit, onSettings: 
     }
 }
 
-/** EmptyHero: centered coing wordmark + tagline, composer below. No suggestion chips. */
+/**
+ * EmptyHero: coing wordmark + tagline centered in the space above, composer pinned to the
+ * bottom — laid out exactly like [BottomDock] (same ime / navigation-bar padding, same
+ * horizontal inset), so the composer never jumps when the first message turns the hero
+ * into a chat. No suggestion chips.
+ */
 @Composable
 private fun EmptyHero(vm: HomeViewModel, composer: ComposerState, settings: Settings, live: SessionLive, conv: Conversation, onAutomation: () -> Unit, onSettings: (String?) -> Unit) {
     val c = Dsh.colors
-    Column(Modifier.fillMaxSize().imePadding().navigationBarsPadding().padding(horizontal = 8.dp).padding(bottom = 32.dp),
-        verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(stringResource(R.string.hero_title), Modifier.padding(horizontal = 24.dp), style = DshType.xl24.copy(fontSize = 34.sp, fontWeight = androidx.compose.ui.text.font.FontWeight(600)),
-            color = c.labelPrimary, textAlign = TextAlign.Center)
-        Text(stringResource(R.string.onb_tagline), Modifier.padding(horizontal = 48.dp).padding(top = 10.dp), style = DshType.xs13,
-            color = c.labelTertiary, textAlign = TextAlign.Center)
-        // Remote mode (#51): the new conversation runs on this computer.
-        val remote by vm.remote.collectAsStateWithLifecycle()
-        remote?.host?.let { h ->
-            Text(stringResource(R.string.remote_hero, h.name), Modifier.padding(top = 8.dp), style = DshType.xs13, color = c.labelTertiary)
+    Column(Modifier.fillMaxSize()) {
+        Column(Modifier.weight(1f).fillMaxWidth(), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(stringResource(R.string.hero_title), Modifier.padding(horizontal = 24.dp), style = DshType.xl24.copy(fontSize = 34.sp, fontWeight = androidx.compose.ui.text.font.FontWeight(600)),
+                color = c.labelPrimary, textAlign = TextAlign.Center)
+            Text(stringResource(R.string.onb_tagline), Modifier.padding(horizontal = 48.dp).padding(top = 10.dp), style = DshType.xs13,
+                color = c.labelTertiary, textAlign = TextAlign.Center)
+            // Remote mode (#51): the new conversation runs on this computer.
+            val remote by vm.remote.collectAsStateWithLifecycle()
+            remote?.host?.let { h ->
+                Text(stringResource(R.string.remote_hero, h.name), Modifier.padding(top = 8.dp), style = DshType.xs13, color = c.labelTertiary)
+            }
         }
-        Spacer(Modifier.height(28.dp))
-        ComposerSlot(vm, composer, settings, live, conv, hero = true, onAutomation = onAutomation, onManageModes = { onSettings("Modes") })
+        Column(Modifier.fillMaxWidth().imePadding().navigationBarsPadding().padding(bottom = 4.dp)) {
+            Box(Modifier.padding(horizontal = 8.dp)) {
+                ComposerSlot(vm, composer, settings, live, conv, hero = true, onAutomation = onAutomation, onManageModes = { onSettings("Modes") })
+            }
+        }
     }
 }
 

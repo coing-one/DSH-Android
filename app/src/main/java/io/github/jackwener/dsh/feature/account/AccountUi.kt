@@ -350,7 +350,16 @@ fun DrawerAccountRow(account: AccountRepository, onSettings: () -> Unit) {
                 DIcon(R.drawable.dsw_settings_outline, size = 16.dp, tint = c.labelSecondary)
                 Text(stringResource(R.string.settings), style = DshType.s14, color = c.labelPrimary)
             }
-            DButton(stringResource(R.string.acct_sign_in), { account.startSignIn() }, variant = BtnVariant.Outline, size = BtnSize.Sm, icon = R.drawable.dsw_user_outline)
+            // Sign-in in Miuix Button form (the drawer's footer action); layout unchanged.
+            top.yukonga.miuix.kmp.basic.Button(
+                onClick = { account.startSignIn() },
+                minWidth = 0.dp, minHeight = 34.dp,
+                insideMargin = androidx.compose.foundation.layout.PaddingValues(horizontal = 14.dp, vertical = 7.dp),
+            ) {
+                DIcon(R.drawable.dsw_user_outline, size = 14.dp, tint = top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme.onSecondaryVariant)
+                Spacer(Modifier.width(6.dp))
+                top.yukonga.miuix.kmp.basic.Text(stringResource(R.string.acct_sign_in))
+            }
         }
         return
     }

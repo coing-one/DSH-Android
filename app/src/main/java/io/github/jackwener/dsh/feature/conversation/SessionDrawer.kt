@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -96,17 +97,36 @@ fun SessionDrawer(
             Wordmark(Modifier.weight(1f).pressable({ onNew() }, Radius.sm))
             IconBtn(R.drawable.dsw_panel_left_outline, onClose, contentDescription = stringResource(R.string.collapse_sidebar))
         }
-        Row(Modifier.padding(horizontal = 2.dp).padding(bottom = 12.dp).fillMaxWidth().height(40.dp).clip(Radius.md).background(c.hoverSolid).pressable(onNew, Radius.md),
-            verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
-            DIcon(R.drawable.dsw_new_chat_outline, size = 14.dp, tint = c.labelPrimary)
+        // 新会话 stays a standalone primary action on top, in Miuix Button form.
+        top.yukonga.miuix.kmp.basic.Button(
+            onClick = onNew,
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 2.dp),
+            colors = top.yukonga.miuix.kmp.basic.ButtonDefaults.buttonColorsPrimary(),
+            insideMargin = PaddingValues(horizontal = 16.dp, vertical = 10.dp),
+        ) {
+            val onPrimary = top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme.onPrimary
+            DIcon(R.drawable.dsw_new_chat_outline, size = 14.dp, tint = onPrimary)
             Spacer(Modifier.width(6.dp))
-            Text(stringResource(R.string.new_session), style = DshType.s14, color = c.labelPrimary)
+            top.yukonga.miuix.kmp.basic.Text(stringResource(R.string.new_session))
         }
-        workspace()
-        PanelEntry(R.drawable.dsw_clock_outline, stringResource(R.string.automation), onAutomation)
-        PanelEntry(R.drawable.dsw_shield_outline, stringResource(R.string.drawer_permissions)) { onSettings("Phone") }
-        Row(Modifier.fillMaxWidth().heightIn(min = 40.dp).padding(start = 8.dp, top = 2.dp), verticalAlignment = Alignment.CenterVertically) {
-            Text(stringResource(R.string.sessions), Modifier.weight(1f), style = DshType.xs13m, color = c.labelTertiary)
+        Spacer(Modifier.height(12.dp))
+        // The three entries live in one white Miuix Card as preference rows: the workspace
+        // switcher is itself a BasicComponent row; 自动化任务 / 权限与无障碍 are ArrowPreference.
+        top.yukonga.miuix.kmp.basic.Card(Modifier.fillMaxWidth(), insideMargin = PaddingValues(0.dp)) {
+            workspace()
+            top.yukonga.miuix.kmp.preference.ArrowPreference(
+                title = stringResource(R.string.automation),
+                startAction = { DIcon(R.drawable.dsw_clock_outline, size = 20.dp, tint = c.labelSecondary) },
+                onClick = onAutomation,
+            )
+            top.yukonga.miuix.kmp.preference.ArrowPreference(
+                title = stringResource(R.string.drawer_permissions),
+                startAction = { DIcon(R.drawable.dsw_shield_outline, size = 20.dp, tint = c.labelSecondary) },
+                onClick = { onSettings("Phone") },
+            )
+        }
+        Row(Modifier.fillMaxWidth().heightIn(min = 40.dp).padding(top = 2.dp), verticalAlignment = Alignment.CenterVertically) {
+            top.yukonga.miuix.kmp.basic.SmallTitle(stringResource(R.string.sessions), Modifier.weight(1f), insideMargin = PaddingValues(start = 16.dp, top = 8.dp, bottom = 8.dp))
             IconBtn(R.drawable.dsw_search_outline, { searching = !searching; if (!searching) query = "" }, size = 40.dp, iconSize = 14.dp, tint = c.labelTertiary,
                 contentDescription = stringResource(R.string.search_sessions))
             Box {
@@ -142,17 +162,11 @@ fun SessionDrawer(
         // dsh sidebar footer: the account launcher (avatar + name, or 更多 before sign-in) owns 设置.
         val account = io.github.jackwener.dsh.feature.account.LocalAccount.current
         if (account != null) Box(Modifier.padding(top = 4.dp)) { io.github.jackwener.dsh.feature.account.DrawerAccountRow(account) { onSettings(null) } }
-        else PanelEntry(R.drawable.dsw_settings_outline, stringResource(R.string.settings)) { onSettings(null) }
-    }
-}
-
-@Composable
-private fun PanelEntry(@DrawableRes icon: Int, label: String, onClick: () -> Unit) {
-    val c = Dsh.colors
-    Row(Modifier.fillMaxWidth().heightIn(min = 40.dp).pressable(onClick, Radius.md).padding(horizontal = 8.dp, vertical = 7.dp),
-        verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        DIcon(icon, size = 16.dp, tint = c.labelSecondary)
-        Text(label, style = DshType.s14, color = c.labelPrimary)
+        else top.yukonga.miuix.kmp.preference.ArrowPreference(
+            title = stringResource(R.string.settings),
+            startAction = { DIcon(R.drawable.dsw_settings_outline, size = 20.dp, tint = c.labelSecondary) },
+            onClick = { onSettings(null) },
+        )
     }
 }
 
@@ -168,8 +182,8 @@ private fun SessionRow(
     var renaming by remember { mutableStateOf(false) }
     var deleting by remember { mutableStateOf(false) }
     Box {
-        Row(Modifier.fillMaxWidth().heightIn(min = 44.dp).clip(Radius.md).background(if (selected) c.sidebarActive else androidx.compose.ui.graphics.Color.Transparent)
-            .pressable(onClick, Radius.md, onLongClick = { menu = true }).padding(start = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+        Row(Modifier.fillMaxWidth().heightIn(min = 44.dp).clip(Radius.xl).background(if (selected) c.sidebarActive else androidx.compose.ui.graphics.Color.Transparent)
+            .pressable(onClick, Radius.xl, onLongClick = { menu = true }).padding(start = 12.dp), verticalAlignment = Alignment.CenterVertically) {
             Box(Modifier.size(16.dp), contentAlignment = Alignment.Center) {
                 when {
                     st == RowStatus.Approval -> Box(Modifier.size(6.dp).clip(CircleShape).background(c.warn))

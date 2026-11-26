@@ -75,12 +75,12 @@ jobs:
           path: coing.apk
           if-no-files-found: error
 
-      - name: Publish APK to GitHub Release (coing-v3)
+      - name: Publish APK to GitHub Release (coing-v4)
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release view coing-v3 --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1 || \
-            gh release create coing-v3 --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" \
-              --title "coing 第二版构建" \
-              --notes "GitHub Actions 构建。本版：起始页布局修正（品牌区在上、开始使用卡片底部锚定）、对话框按定稿结构重排（大圆角容器、+ 在最左、模型名弹性省略、发送键固定）、起始页与设置首页引入 Miuix 0.9.4 真库试点。release 未配正式 keystore、回落 debug 密钥签名，可直接安装验 UI；正式签名待定。"
-          gh release upload coing-v3 coing.apk --repo "$GITHUB_REPOSITORY" --clobber
+          gh release view coing-v4 --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1 || \
+            gh release create coing-v4 --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" \
+              --title "coing v4" \
+              --notes "GitHub Actions 构建。本版两处修正：一、对话主页空状态下输入框钉到屏幕底部，与有消息时位置一致，字标与标语在上方空间居中，切换不跳位；二、侧栏抽屉按 Miuix 列表形态重做——本机/自动化任务/权限与无障碍收进一张白色大圆角卡片、行换 Miuix preference 真组件（BasicComponent/ArrowPreference），新会话换 Miuix 主按钮，会话分节标题换 SmallTitle，会话行选中态与圆角对齐卡片内行规范，页脚登录按钮换 Miuix Button。release 未配正式 keystore、回落 debug 密钥签名，可直接覆盖安装；正式签名待定。"
+          gh release upload coing-v4 coing.apk --repo "$GITHUB_REPOSITORY" --clobber

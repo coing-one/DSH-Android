@@ -43,14 +43,18 @@ fun WorkspaceSwitcher(current: String?, hosts: List<RemoteHost>, states: Map<Str
     var open by remember { mutableStateOf(false) }
     val host = hosts.firstOrNull { it.id == current }
     Box {
-        Row(Modifier.fillMaxWidth().heightIn(min = 40.dp).pressable({ open = true }, Radius.md).padding(horizontal = 8.dp, vertical = 7.dp),
-            verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            DIcon(R.drawable.dsw_workspace_tree_outline, size = 16.dp, tint = c.labelSecondary)
-            Text(host?.name ?: stringResource(R.string.remote_this_phone), Modifier.weight(1f, fill = false), style = DshType.s14, color = c.labelPrimary,
-                maxLines = 1, overflow = TextOverflow.Ellipsis)
-            if (host != null) RemoteStateDot(states[host.id] ?: RemoteState.Idle)
-            DIcon(R.drawable.dsw_chevrons_up_down_outline, size = 12.dp, tint = c.labelTertiary, contentDescription = stringResource(R.string.remote_workspace))
-        }
+        // Miuix preference row (BasicComponent spec), so the drawer card's first row matches
+        // the ArrowPreference rows below it; the switcher keeps its up/down chevron instead
+        // of an arrow, and the menu anchor / behavior are unchanged.
+        top.yukonga.miuix.kmp.basic.BasicComponent(
+            title = host?.name ?: stringResource(R.string.remote_this_phone),
+            startAction = { DIcon(R.drawable.dsw_workspace_tree_outline, size = 20.dp, tint = c.labelSecondary) },
+            endActions = {
+                if (host != null) RemoteStateDot(states[host.id] ?: RemoteState.Idle)
+                DIcon(R.drawable.dsw_chevrons_up_down_outline, size = 12.dp, tint = c.labelTertiary, contentDescription = stringResource(R.string.remote_workspace))
+            },
+            onClick = { open = true },
+        )
         DMenu(open, { open = false }) {
             MenuSectionTitle(stringResource(R.string.remote_workspace))
             MenuItem(stringResource(R.string.remote_this_phone), { open = false; onSelect(null) }, R.drawable.dsw_whale,
